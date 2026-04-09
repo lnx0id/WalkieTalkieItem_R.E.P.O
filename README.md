@@ -2,9 +2,9 @@
 <br>
 please note that code here is very far from best-practice repo-modding and working with photon, you still can
 find something useful if you dont know where to start
-
-(after building repobundle in unity remember to remove extension of .repobundle file in generated zip. Otherwise beepinex will try to load bundle twice and that is no good)
-
+::: warning
+(after building repobundle in unity **remember to remove extension** of .repobundle file in generated zip. Otherwise beepinex will try to load bundle twice and that is no good)
+:::
 <br><br>
 https://thunderstore.io/c/repo/p/lnxoid/WalkieTalkieItemBundle/
 # Walkie Talkie
