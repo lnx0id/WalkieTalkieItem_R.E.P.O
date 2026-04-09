@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1549797422, guid: 82b300974c1b6ba47896a68a7ae4f6c3, type: 3}
+  m_Name: WalkieTalkieItemBundle
+  m_EditorClassIdentifier: 
+  _name: WalkieTalkieItemBundle
+  _author: Lnx0id
+  _version: 1.0.0
+  _description: 'Shopable item: walkie talkie. Used to call teammates from far distance
+    model by https://sketchfab.com/jungle_jim'
+  _websiteUrl: 
+  _dependencies:
+  - Zehs-REPOLib-3.0.4
+  _icon: {fileID: 21300000, guid: c56672a09bc33ec419a26eb108520a7a, type: 3}
+  _readme: {fileID: 4900000, guid: d47c9ffe70304fb498fc5b36b27039a0, type: 3}

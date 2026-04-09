@@ -167,12 +167,6 @@ namespace Radio
                     StopCoroutine(lightBlinkRoutine);
                     lightBlinkRoutine = null;
                 }
-
-                if (broadcastToWalkieTalkieScript != null)
-                {
-                    broadcastToWalkieTalkieScript = null;
-                    photonView.RPC("SetBroadcastGameObject", RpcTarget.Others, 0);
-                }
             }
 
 
@@ -183,15 +177,7 @@ namespace Radio
 
                 if (latestOwnerLocalInstance == null) return;
 
-                if (latestOwnerLocalInstance.playerName.Equals(PlayerAvatar.instance.playerName) == false)
-                {
-                    Debug.Log("[BROADCAST] reciever is not you");
-                    return;
-                }
-                else
-                {
-                    Debug.Log("SUCCES RECIEVED");
-                }
+                if (latestOwnerLocalInstance.playerName.Equals(PlayerAvatar.instance.playerName) == false) return;
 
                 if (mytextMeshUI == null)
                 {

@@ -1,0 +1,15 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1558716956, guid: 82b300974c1b6ba47896a68a7ae4f6c3, type: 3}
+  m_Name: WalkieTalkieItemRepoLibItem
+  m_EditorClassIdentifier: 
+  _prefab: {fileID: 3617168986815252313, guid: d7eef7f0ea38a964790fb60fef7be365, type: 3}
