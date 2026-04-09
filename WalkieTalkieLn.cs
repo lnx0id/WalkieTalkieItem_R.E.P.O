@@ -15,8 +15,6 @@ namespace Radio
         public Light? light;
         private Coroutine? lightBlinkRoutine;
 
-
-
         private TextMeshProUGUI? mytextMeshUI;
 
         public bool equiped { get; private set; } = false;
@@ -282,7 +280,6 @@ namespace Radio
 
                 isTalking = false;
 
-                // Loop through grabbed players
                 foreach (PhysGrabber item in physGrabObject.playerGrabbing)
                 {
                     var voice = item.playerAvatar.voiceChat;
@@ -334,7 +331,7 @@ namespace Radio
                     isTalking = true;
                     if (voice.clipLoudness > 0.005f)
                     {
-                        intensityRatio += voice.clipLoudness * 5;
+                        intensityRatio += voice.clipLoudness * 8;
                     }
                 }
 
@@ -347,10 +344,7 @@ namespace Radio
                     broadcastToWalkieTalkieScript.photonView.RPC("SetCurrentlyBroadcasting", RpcTarget.All, false);
                 }
 
-                Light? targetLight = null;
-                if (broadCastToGameObject && broadCastToGameObject.transform.childCount > 0)
-                    targetLight = broadCastToGameObject.transform.GetChild(0).GetComponent<Light>();
-                if (targetLight != null) targetLight.intensity = intensityRatio;
+                broadcastToWalkieTalkieScript.light.intensity = intensityRatio;
             }
             catch (Exception e)
             {
@@ -362,8 +356,6 @@ namespace Radio
         {
             Vector3 physGrabTargetObjectPosition = Vector3.zero;
             GameObject? radioObject = null;
-
-            // Find or update broadcast target
 
             if (_allRadios.Count <= 1) { Debug.LogError("_allradios is empty or 1"); return null; }
 
