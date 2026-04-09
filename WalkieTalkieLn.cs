@@ -79,7 +79,6 @@ namespace Radio
 
             if (lastEquiped != equiped)
             {
-                Debug.LogWarning($" CHANGE ! equiped {equiped} last equiped {lastEquiped} broadcast from {broadcastFromInstance}");
                 try
                 {
                     if (equiped)
@@ -109,14 +108,13 @@ namespace Radio
                                 Debug.LogError($"no object/player with id {itemEquipableScript.ownerPlayerId}");
                             }
 
-                            Debug.Log($" {latestOwnerLocalInstance}'s radio is now in {itemEquipableScript.currentState} {latestOwnersRadioGameObject.name}");
+
                         }
 
                     }
                     else
                     {
                         latestOwnerLocalInstance = null;
-                        Debug.LogWarning("radio is no longer in inventory");
                     }
 
                     lastEquiped = equiped;
@@ -275,7 +273,6 @@ namespace Radio
 
                 if (broadcastToWalkieTalkieScript.broadcastFromInstance != currentChannelInstance)
                 {
-                    Debug.LogWarning($"changing {broadcastToWalkieTalkieScript.gameObject.name} fromBroadcast to {currentChannelInstance}");
                     broadcastToWalkieTalkieScript.broadcastFromInstance = currentChannelInstance;
                     broadcastToWalkieTalkieScript.photonView.RPC("SetFromBroadcast", RpcTarget.Others, currentChannelInstance);
                 }
@@ -357,7 +354,7 @@ namespace Radio
             }
             catch (Exception e)
             {
-                Debug.LogError($"stack trace {e.StackTrace}\ne:{e.Message}/n{e.InnerException}");
+                Debug.LogException(e);
             }
         }
 
@@ -380,7 +377,6 @@ namespace Radio
                 }
             }
 
-            Debug.LogWarning($"first try failed {toChannelInstance} is null");
 
             var orderedChannels = _allRadios.Keys.OrderBy(x => x).ToList();
 
@@ -395,14 +391,11 @@ namespace Radio
 
                     toChannelInstance = ch;
                     lastChannel = ch;
-                    Debug.Log($"Set to {ch} after second check");
                     return forTryFind;
                 }
-                Debug.LogError($"failed foreach, trying to get from latest firsttry");
                 secondTry = true;
                 return null;
             }
-            Debug.LogError($"after secondtry try get latest");
 
             return broadCastToGameObject;
         }
@@ -422,7 +415,6 @@ namespace Radio
             photonView.RPC("SetChannel", RpcTarget.Others, toChannelInstance);
             DisplayChannel();
             photonView.RPC("DisplayNet", RpcTarget.Others);
-            Debug.Log($" radio id {currentChannelInstance} switched to channel {toChannelInstance}");
         }
         [PunRPC]
         private void DisplayNet()
@@ -456,7 +448,6 @@ namespace Radio
             {
                 firstChannel = currentChannelInstance;
                 photonView.RPC("SetFirstChannel", RpcTarget.Others, currentChannelInstance);
-                Debug.Log($"first id is {firstChannel}");
             }
 
             Debug.Log(_allRadios.Count + " < count; " + gameObject.name);
