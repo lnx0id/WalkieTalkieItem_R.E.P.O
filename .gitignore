@@ -5,6 +5,7 @@
 .utmp/
 bin/
 obj/
+plugins/*/
 /[Ll]ibrary/
 /[Tt]emp/
 /[Oo]bj/
