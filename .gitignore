@@ -4,6 +4,7 @@
 #
 .utmp/
 bin/
+obj/
 /[Ll]ibrary/
 /[Tt]emp/
 /[Oo]bj/
