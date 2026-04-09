@@ -1,8 +1,0 @@
-C:\Users\lnx0i\Documents\REPOMODS\WalkieTalkieUnity\Assets\WalkieTalkieMod\obj\Debug\netstandard2.1\WalkieTalkieItem.csproj.AssemblyReference.cache
-C:\Users\lnx0i\Documents\REPOMODS\WalkieTalkieUnity\Assets\WalkieTalkieMod\obj\Debug\netstandard2.1\WalkieTalkieItem.GeneratedMSBuildEditorConfig.editorconfig
-C:\Users\lnx0i\Documents\REPOMODS\WalkieTalkieUnity\Assets\WalkieTalkieMod\obj\Debug\netstandard2.1\WalkieTalkieItem.AssemblyInfoInputs.cache
-C:\Users\lnx0i\Documents\REPOMODS\WalkieTalkieUnity\Assets\WalkieTalkieMod\obj\Debug\netstandard2.1\WalkieTalkieItem.AssemblyInfo.cs
-C:\Users\lnx0i\Documents\REPOMODS\WalkieTalkieUnity\Assets\WalkieTalkieMod\obj\Debug\netstandard2.1\WalkieTalkieItem.csproj.CoreCompileInputs.cache
-C:\Users\lnx0i\Documents\REPOMODS\WalkieTalkieUnity\Assets\WalkieTalkieMod\obj\Debug\netstandard2.1\WalkieTalkieItem.dll
-C:\Users\lnx0i\Documents\REPOMODS\WalkieTalkieUnity\Assets\WalkieTalkieMod\WalkieTalkieItem.deps.json
-C:\Users\lnx0i\Documents\REPOMODS\WalkieTalkieUnity\Assets\WalkieTalkieMod\WalkieTalkieItem.dll
