@@ -1,5 +1,15 @@
 # Walkie Talkie
-Adds a walkie talkies that you can buy at shop
-They work on the "talking bot head" principle but on distance and with low-pitched sound instead of high.
-You can switch between walkie talkies channels with 'V' there's as much channels as walkie-talkies on level. Orange top number on walkie-talkie is recieving channel and bottom red is target channel(walkie talkie id) that will recieve your voice. I'll add config later so you'll can change the bind.
-model by https://sketchfab.com/jungle_jim
+<br><br>
+Adds a walkie talkies that you can buy at shop.<br>
+You can switch between walkie talkies channels with 'V' there's as much channels as walkie talkies on level.<br><br>
+Orange top number on a walkie-talkie is receiving channel<br>	and the bottom red one is the target channel(that yellow number of another walkie talkie).<br><br> 
+I'll add config later so you could change the bind.<br>
+The code is still pretty rough and has a lot of short-term solutions that i will fix later or i wont cuz walkietalkies may be added to the vanilla;<br><br>
+some features may don't work. Invitation for mod-devs to check out the source code on GitHub if you'd like to take a look and improve it or insipire urself;)
+<br>
+<br>
+<details><summary>Context</summary>
+Made for me and my friends in general but feel free to use just do not expect much.<br>
+They work on the "talking bot head" principle but on distance and lower sound instead of making it higher.<br>
+</details>
+# model by https://sketchfab.com/jungle_jim

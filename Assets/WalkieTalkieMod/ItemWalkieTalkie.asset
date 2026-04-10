@@ -13,10 +13,10 @@ MonoBehaviour:
   m_Name: ItemWalkieTalkie
   m_EditorClassIdentifier: 
   disabled: 0
-  itemName: ItemWalkieTalkie
+  itemName: WalkieTalkie
   description: walkie talkie mfks
-  itemType: 0
-  emojiIcon: 0
+  itemType: 13
+  emojiIcon: 11
   itemVolume: 6
   itemSecretShopType: 0
   colorPreset: {fileID: 0}
