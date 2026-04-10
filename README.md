@@ -18,7 +18,7 @@ I'll add config later so you could change the bind.<br>
 The code is still pretty rough a lot of short-term solutions that i will fix later or i wont cuz walkietalkies may be added to the vanilla;<br><br>
 some features may don't work. Invitation for mod-devs to check out the source code on GitHub if you'd like to take a look and improve it or insipire urself;)
 <br>
-![hippo](https://github.com/lnx0id/WalkieTalkieItem_R.E.P.O/blob/74534232222719c8fe9cfb75fed54b9b5756f6ab/mainIntro.gif?raw=true)
+![hippo](http://raw.githubusercontent.com/lnx0id/WalkieTalkieItem_R.E.P.O/master/mainIntro.gif)
 <br>
 <details><summary>Context</summary>
 Made for me and my friends in general but feel free to use just do not expect much.<br>
