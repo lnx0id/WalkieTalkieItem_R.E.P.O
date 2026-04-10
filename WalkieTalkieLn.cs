@@ -1,6 +1,5 @@
 using Photon.Pun;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
@@ -10,44 +9,47 @@ namespace Radio
 {
     public class WalkieTalkieLn : MonoBehaviour
     {
-        private PhysGrabObject? physGrabObject;
-        private Light? lightDotBroadcasting;
-        public Light? light;
-        private Coroutine? lightBlinkRoutine;
-
-        private TextMeshProUGUI? mytextMeshUI;
-
-        public bool equiped { get; private set; } = false;
-
-        private GameObject? broadCastToGameObject;
         private static int firstChannel;
+        private static Dictionary<int, GameObject> _allRadios = new Dictionary<int, GameObject>();
+
+        [SerializeField] private Sound? messageIncomeSound;
+        [SerializeField] private Sound? changeOrEndChannelSound;
+
+        private bool findWalkieTalkieOutOfListComplete = false;
+
+        private PhysGrabObject? physGrabObject;
+        public Light? lightMain;
+
+        private TextMeshProUGUI? warningTextMeshGUI;
+
+        public bool isThisEquiped { get; private set; } = false;
+
+        private GameObject? destintionGameObject;
 
         private bool autoSetupDone = false;
 
         private TextMeshPro? textSource;
         private TextMeshPro? textDestination;
-        private TextMeshPro? textBroadcastSource;
+        private TextMeshPro? textBroadcastFromSource;
 
-        private WalkieTalkieLn? broadcastToWalkieTalkieScript;
+        private WalkieTalkieLn? destinationGameObjectScript;
 
         public ItemEquippable? itemEquipableScript;
 
-        public bool broadcastedToThisInstance = false;
-        public int currentChannelInstance { get; private set; } = 1;
-        public int toChannelInstance { get; private set; } = 1;
-        public int broadcastFromInstance = 1;
+        public bool isReceiving = false;
+        public int currentChannelSource { get; private set; } = 1;
+        public int toChannelDestination { get; private set; } = 1;
+        public int fromChannelReceiving = 1;
 
         private PhotonView? photonView;
 
-        private static Dictionary<int, GameObject> _allRadios = new Dictionary<int, GameObject>();
+        private bool lastlyEquiped = true;
+        private int latestChannelDestination = 0;
+        private bool isCurrentlyBroadcastingTo;
 
-        private bool lastEquiped = true;
-        private GameObject? latestOwnersRadioGameObject;
-        private int switches = 2;
-        private int lastChannel = 0;
-        private bool secondTry = false;
-        private bool isTalking;
-        private PlayerAvatar? latestOwnerLocalInstance;
+        private GameObject? latestOwnersWalkieGameObject;
+        private PlayerAvatar? latestOwnerAvatar;
+        private Vector3 globalPositionInInventory = new Vector3(0, 3000, 0);
 
         private void Awake()
         {
@@ -56,137 +58,73 @@ namespace Radio
             DisplayChannel();
 
             physGrabObject = this.gameObject.GetComponent<PhysGrabObject>();
-            light = gameObject.transform.GetChild(0).gameObject.GetComponent<Light>();
-            lightDotBroadcasting = gameObject.transform.GetChild(3).gameObject.GetComponent<Light>();
+            lightMain = gameObject.transform.GetChild(0).gameObject.GetComponent<Light>();
             itemEquipableScript = this.gameObject.GetComponent<ItemEquippable>();
         }
         private void Update()
         {
             if (gameObject.name == "0InstanceWalkie") return;
 
-            if (physGrabObject == null || light == null || lightDotBroadcasting == null || itemEquipableScript == null) return;
+            if (physGrabObject == null || lightMain == null || itemEquipableScript == null) return;
 
-            if (itemEquipableScript.currentState == ItemEquippable.ItemState.Equipped || itemEquipableScript.currentState == ItemEquippable.ItemState.Equipping)
-            {
-                equiped = true;
-            }
-            else
-            {
-                equiped = false;
-            }
+            isThisEquiped = (itemEquipableScript.currentState == ItemEquippable.ItemState.Equipped || itemEquipableScript.currentState == ItemEquippable.ItemState.Equipping);
 
-            if (lastEquiped != equiped)
-            {
-                try
-                {
-                    if (equiped)
-                    {
-                        if (broadcastFromInstance < 1) return;
-
-                        if (_allRadios.TryGetValue(broadcastFromInstance, out var forTryFind))
-                        {
-                            if (forTryFind.GetComponent<WalkieTalkieLn>() == null)
-                            {
-                                Debug.LogError($"no script in equiped on id {broadcastFromInstance}; {forTryFind.name} ");
-                                return;
-                            }
-                            forTryFind.GetComponent<WalkieTalkieLn>().latestOwnersRadioGameObject = this.gameObject;
-                            forTryFind.GetComponent<WalkieTalkieLn>().TargetInInventory(currentChannelInstance);
-                            var findOwnerGameObject = PhotonView.Find(itemEquipableScript.ownerPlayerId);
-                            if (findOwnerGameObject != null)
-                            {
-                                latestOwnerLocalInstance = findOwnerGameObject.gameObject.GetComponent<PlayerAvatar>();
-                                if (latestOwnerLocalInstance == null)
-                                {
-                                    Debug.LogError($"no Equipable component on /player/gameObject {findOwnerGameObject}");
-                                }
-                            }
-                            else
-                            {
-                                Debug.LogError($"no object/player with id {itemEquipableScript.ownerPlayerId}");
-                            }
-
-
-                        }
-
-                    }
-                    else
-                    {
-                        latestOwnerLocalInstance = null;
-                    }
-
-                    lastEquiped = equiped;
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                }
-            }
-
+            UpdateEquiping();
 
             if (physGrabObject.grabbed)
             {
-                if (!autoSetupDone)
-                {
-                    if (firstChannel != currentChannelInstance)
-                    {
-                        photonView.RPC("SetChannel", RpcTarget.All, firstChannel);
-                    }
-                    else
-                    {
-                        SwitchChannel();
-                    }
-
-                    Debug.Log("SETTED UP A RADIO -> " + gameObject.name + "channel from: " + currentChannelInstance + "; channel to: " + toChannelInstance + "; ");
-                    DisplayChannel();
-                    autoSetupDone = true;
-                }
-
-                if (lightBlinkRoutine == null)
-                    lightBlinkRoutine = StartCoroutine(BlinkRoutine());
+                AutoSetup();
 
                 if (Input.GetKeyDown(KeyCode.V))
                 {
                     SwitchChannel();
+
+                    changeOrEndChannelSound.Play(gameObject.transform.position);
                 }
+
                 BroadCast();
 
             }
-            else
+            else if (destinationGameObjectScript != null && destinationGameObjectScript.fromChannelReceiving == currentChannelSource)
             {
-                if (mytextMeshUI != null && !string.IsNullOrEmpty(mytextMeshUI.text))
+                if (destinationGameObjectScript.warningTextMeshGUI != null && !string.IsNullOrEmpty(destinationGameObjectScript.warningTextMeshGUI.text))
                 {
-                    HudDeactivate();
+                    destinationGameObjectScript.isReceiving = false;
+                    destinationGameObjectScript.photonView.RPC("SetIsReceiving", RpcTarget.Others, false);
+
+                    destinationGameObjectScript.photonView.RPC("HudDeactivate", RpcTarget.All);
                 }
-                if (lightBlinkRoutine != null)
-                {
-                    StopCoroutine(lightBlinkRoutine);
-                    lightBlinkRoutine = null;
-                }
+            }
+            if (itemEquipableScript != null && itemEquipableScript.currentState == ItemEquippable.ItemState.Equipped && destinationGameObjectScript != null && destinationGameObjectScript.fromChannelReceiving == currentChannelSource)
+            {
+                destinationGameObjectScript.isReceiving = false;
+                destinationGameObjectScript.photonView.RPC("SetIsReceiving", RpcTarget.Others, false);
+
+                destinationGameObjectScript.photonView.RPC("HudDeactivate", RpcTarget.All);
             }
 
 
 
-            if (broadcastedToThisInstance)
+            if (isReceiving)
             {
                 if (itemEquipableScript.currentState != ItemEquippable.ItemState.Equipped) return;
 
-                if (latestOwnerLocalInstance == null) return;
+                if (latestOwnerAvatar == null) return;
 
-                if (latestOwnerLocalInstance.playerName.Equals(PlayerAvatar.instance.playerName) == false) return;
+                if (latestOwnerAvatar.playerName.Equals(PlayerAvatar.instance.playerName) == false) return;
 
-                if (mytextMeshUI == null)
+                if (warningTextMeshGUI == null)
                 {
                     HudGenerate();
                 }
-                else if (!mytextMeshUI.IsActive())
+                else if (!warningTextMeshGUI.IsActive())
                 {
                     HudActivate();
                 }
             }
             else
             {
-                if (mytextMeshUI != null && !string.IsNullOrEmpty(mytextMeshUI.text))
+                if (warningTextMeshGUI != null && !string.IsNullOrEmpty(warningTextMeshGUI.text))
                 {
                     HudDeactivate();
                 }
@@ -194,41 +132,106 @@ namespace Radio
 
         }
 
-        private void TargetInInventory(int currentCh)
+        private void AutoSetup()
         {
+            if (!autoSetupDone)
+            {
+                if (firstChannel != currentChannelSource)
+                {
+                    photonView.RPC("SetChannel", RpcTarget.All, firstChannel);
+                }
+                else
+                {
+                    SwitchChannel();
+                }
 
+                Debug.Log("SETTED UP A RADIO -> " + gameObject.name + "channel from: " + currentChannelSource + "; channel to: " + toChannelDestination + "; ");
+                DisplayChannel();
+                autoSetupDone = true;
+            }
+        }
+
+        private void UpdateEquiping()
+        {
+            if (lastlyEquiped == isThisEquiped) return;
+
+            if (isThisEquiped)
+            {
+                if (fromChannelReceiving < 1) return;
+
+                latestOwnerAvatar = getOwnerAvatar(fromChannelReceiving);
+            }
+            else
+            {
+                latestOwnerAvatar = null;
+            }
+
+            lastlyEquiped = isThisEquiped;
+        }
+
+        private PlayerAvatar? getOwnerAvatar(int channelId)
+        {
+            if (channelId == currentChannelSource) return PlayerAvatar.instance;
+
+            if (!_allRadios.TryGetValue(channelId, out var forTryFind)) return null;
+
+            if (forTryFind.GetComponent<WalkieTalkieLn>() == null)
+            {
+                Debug.LogError($"no script in equiped on id {channelId}; {forTryFind.name} ");
+                return null;
+            }
+            forTryFind.GetComponent<WalkieTalkieLn>().latestOwnersWalkieGameObject = this.gameObject;
+            var findOwnerGameObject = PhotonView.Find(itemEquipableScript.ownerPlayerId);
+            if (findOwnerGameObject != null)
+            {
+                latestOwnerAvatar = findOwnerGameObject.gameObject.GetComponent<PlayerAvatar>();
+
+                if (latestOwnerAvatar == null)
+                {
+                    Debug.LogError($"no Equipable component on /player/gameObject {findOwnerGameObject}");
+                    return null;
+                }
+            }
+            else
+            {
+                Debug.LogError($"no object/player with id {itemEquipableScript.ownerPlayerId}");
+                return null;
+            }
+            return latestOwnerAvatar;
         }
 
         [PunRPC]
         private void HudActivate()
         {
-            mytextMeshUI.gameObject.SetActive(true);
-            mytextMeshUI.SetText("INCOMING MESSAGE<br>take your walkie talkie from inventory");
+            if (warningTextMeshGUI == null) HudGenerate();
+            warningTextMeshGUI.gameObject.SetActive(true);
+            warningTextMeshGUI.SetText("INCOMING MESSAGE<br>take your walkie talkie from inventory");
         }
         [PunRPC]
         private void HudDeactivate()
         {
-            mytextMeshUI.gameObject.SetActive(false);
-            mytextMeshUI.SetText("");
+            if (warningTextMeshGUI == null) return;
+            warningTextMeshGUI.gameObject.SetActive(false);
+            warningTextMeshGUI.SetText("");
         }
         [PunRPC]
         private void HudGenerate()
         {
             GameObject hudObj = new GameObject("RadioMessage", typeof(RectTransform));
-            mytextMeshUI = hudObj.AddComponent<TextMeshProUGUI>();
+            warningTextMeshGUI = hudObj.AddComponent<TextMeshProUGUI>();
             var existingHealthUI = HealthUI.instance.GetComponent<TextMeshProUGUI>();
-            var myRectTransform = mytextMeshUI.rectTransform;
+            var myRectTransform = warningTextMeshGUI.rectTransform;
             myRectTransform.anchorMin = new Vector2(1f, 0.5f);
             myRectTransform.anchorMax = new Vector2(1f, 0.5f);
             myRectTransform.pivot = new Vector2(0f, 1f);
-            mytextMeshUI.transform.SetParent(existingHealthUI.transform.parent, false);
-            mytextMeshUI.font = existingHealthUI.font;
-            mytextMeshUI.material = existingHealthUI.fontMaterial;
-            mytextMeshUI.color = Color.red;
-            mytextMeshUI.fontSize = existingHealthUI.fontSize - 12.5f;
-            mytextMeshUI.rectTransform.anchoredPosition = new Vector2(-180, 0);
-            mytextMeshUI.SetText("INCOMING MESSAGE<br>take your walkie talkie from inventory");
-            mytextMeshUI.enabled = true;
+            warningTextMeshGUI.transform.SetParent(existingHealthUI.transform.parent, false);
+            warningTextMeshGUI.font = existingHealthUI.font;
+            warningTextMeshGUI.material = existingHealthUI.fontMaterial;
+            warningTextMeshGUI.color = Color.red;
+            warningTextMeshGUI.fontSize = existingHealthUI.fontSize - 12.5f;
+            warningTextMeshGUI.rectTransform.anchoredPosition = new Vector2(-180, 0);
+            warningTextMeshGUI.SetText("INCOMING MESSAGE<br>take your walkie talkie from inventory");
+            warningTextMeshGUI.enabled = true;
         }
 
 
@@ -236,49 +239,49 @@ namespace Radio
         {
             try
             {
-                Vector3 physGrabTargetObjectPosition = Vector3.zero;
+                Vector3 DestinationWalkiePosition = Vector3.zero;
 
-                if (toChannelInstance == currentChannelInstance)
+                if (toChannelDestination == currentChannelSource)
                 {
                     SwitchChannel();
                     return;
                 }
 
-                if (broadCastToGameObject == null)
+                if (destintionGameObject == null)
                 {
-                    broadCastToGameObject = tryGetGameObject();
+                    destintionGameObject = tryGetGameObject();
                 }
-                else if (broadCastToGameObject != latestOwnersRadioGameObject)
+                else if (destintionGameObject != latestOwnersWalkieGameObject)
                 {
-                    latestOwnersRadioGameObject = broadCastToGameObject;
+                    latestOwnersWalkieGameObject = destintionGameObject;
                 }
 
-                if (broadCastToGameObject == null)
+                if (destintionGameObject == null)
                 {
                     Debug.LogError("still no gameobject");
                     return;
                 }
-                else if (broadcastToWalkieTalkieScript == null)
+                else if (destinationGameObjectScript == null)
                 {
-                    broadcastToWalkieTalkieScript = broadCastToGameObject.GetComponent<WalkieTalkieLn>();
+                    destinationGameObjectScript = destintionGameObject.GetComponent<WalkieTalkieLn>();
                 }
 
-                if (broadcastToWalkieTalkieScript == null)
+                if (destinationGameObjectScript == null)
                 {
                     Debug.LogError("Still no script");
                     return;
                 }
 
-                if (broadcastToWalkieTalkieScript.broadcastFromInstance != currentChannelInstance)
+                if (destinationGameObjectScript.fromChannelReceiving != currentChannelSource)
                 {
-                    broadcastToWalkieTalkieScript.broadcastFromInstance = currentChannelInstance;
-                    broadcastToWalkieTalkieScript.photonView.RPC("SetFromBroadcast", RpcTarget.Others, currentChannelInstance);
+                    destinationGameObjectScript.fromChannelReceiving = currentChannelSource;
+                    destinationGameObjectScript.photonView.RPC("SetFromChannelReceiving", RpcTarget.Others, currentChannelSource);
                 }
 
                 float intensityRatio = 0f;
                 if (physGrabObject == null) return;
 
-                isTalking = false;
+                isCurrentlyBroadcastingTo = false;
 
                 foreach (PhysGrabber item in physGrabObject.playerGrabbing)
                 {
@@ -289,67 +292,73 @@ namespace Radio
                         continue;
                     }
 
-                    if (!broadcastToWalkieTalkieScript || !broadcastToWalkieTalkieScript.photonView)
-                    {
-                        Debug.LogError("[VOICE SKIP] WalkieTalkie script or photonView missing");
-                        continue;
-                    }
+                    bool succes = getDestinationPosition(ref DestinationWalkiePosition);
 
-                    if (physGrabTargetObjectPosition == Vector3.zero)
-                    {
 
-                        var tmpPhysGrab = broadCastToGameObject.GetComponent<PhysGrabObject>();
-
-                        if (tmpPhysGrab != null && tmpPhysGrab)
-                        {
-                            physGrabTargetObjectPosition = tmpPhysGrab.centerPoint;
-                        }
-                        else if (broadCastToGameObject)
-                        {
-                            physGrabTargetObjectPosition = broadCastToGameObject.transform.position;
-                        }
-                        else
-                        {
-                            Debug.LogError("[POSITION FAIL] broadCastToGameObject is NULL, cannot resolve position");
-                            return;
-                        }
-                    }
-
-                    if (physGrabTargetObjectPosition == new Vector3(0, 3000, 0))
-                    {
-
-                        if (latestOwnersRadioGameObject == null)
-                        {
-                            Debug.LogError("[POSITION FAIL] latestOwnersRadioGameObject is NULL but target is (0,3000,0)");
-                            return;
-                        }
-                    }
-
-                    voice.OverridePosition(physGrabTargetObjectPosition, 0.2f);
+                    //ACTUAL CODE THAT DOES WALKIE TALKIES;) \/
+                    voice.OverridePosition(DestinationWalkiePosition, 0.2f);
                     voice.OverridePitch(0.85f, 0.1f, 0.1f, 0.2f, 0.05f, 100f);
                     item.playerAvatar.voiceChat.OverrideNoTalkAnimation(0.2f);
-                    isTalking = true;
+                    isCurrentlyBroadcastingTo = true;
                     if (voice.clipLoudness > 0.005f)
                     {
                         intensityRatio += voice.clipLoudness * 8;
                     }
                 }
-
-                if (isTalking && !broadcastToWalkieTalkieScript.broadcastedToThisInstance)
+                if (destintionGameObject == null) return;
+                if (isCurrentlyBroadcastingTo && !destinationGameObjectScript.isReceiving)
                 {
-                    broadcastToWalkieTalkieScript.photonView.RPC("SetCurrentlyBroadcasting", RpcTarget.All, true);
+                    destinationGameObjectScript.photonView.RPC("SetIsReceiving", RpcTarget.All, true);
+
+                    destinationGameObjectScript.photonView.RPC("PlayIncomeSound", RpcTarget.All);
                 }
-                if (!isTalking && broadcastToWalkieTalkieScript.broadcastedToThisInstance)
+                if (!isCurrentlyBroadcastingTo && destinationGameObjectScript.isReceiving)
                 {
-                    broadcastToWalkieTalkieScript.photonView.RPC("SetCurrentlyBroadcasting", RpcTarget.All, false);
+                    destinationGameObjectScript.photonView.RPC("SetIsReceiving", RpcTarget.All, false);
+
+                    destinationGameObjectScript.photonView.RPC("PlayOutSound", RpcTarget.All);
                 }
 
-                broadcastToWalkieTalkieScript.light.intensity = intensityRatio;
+                destinationGameObjectScript.lightMain.intensity = intensityRatio;
             }
             catch (Exception e)
             {
                 Debug.LogException(e);
             }
+        }
+
+        private bool getDestinationPosition(ref Vector3 destinationObjectPosition)
+        {
+            if (destintionGameObject == null) return false;
+
+            if (destinationObjectPosition == Vector3.zero)
+            {
+                var tmpPhysGrab = destintionGameObject.GetComponent<PhysGrabObject>();
+
+                if (tmpPhysGrab != null && tmpPhysGrab)
+                {
+                    destinationObjectPosition = tmpPhysGrab.centerPoint;
+                }
+                else if (destintionGameObject)
+                {
+                    destinationObjectPosition = destintionGameObject.transform.position;
+                }
+                else
+                {
+                    Debug.LogError("[POSITION FAIL] broadCastToGameObject is NULL, cannot resolve position");
+                    return false;
+                }
+            }
+
+            if (destinationObjectPosition == globalPositionInInventory)
+            {
+                if (latestOwnersWalkieGameObject == null)
+                {
+                    Debug.LogError("[POSITION FAIL] latestOwnersRadioGameObject is NULL but target is (0,3000,0)");
+                    return false;
+                }
+            }
+            return true;
         }
 
         private GameObject? tryGetGameObject()
@@ -359,12 +368,12 @@ namespace Radio
 
             if (_allRadios.Count <= 1) { Debug.LogError("_allradios is empty or 1"); return null; }
 
-            if (_allRadios.TryGetValue(toChannelInstance, out radioObject))
+            if (_allRadios.TryGetValue(toChannelDestination, out radioObject))
             {
                 if (radioObject != null)
                 {
-                    lastChannel = toChannelInstance;
-                    photonView.RPC("SetChannel", RpcTarget.Others, toChannelInstance);
+                    latestChannelDestination = toChannelDestination;
+                    photonView.RPC("SetChannel", RpcTarget.Others, toChannelDestination);
                     return radioObject;
                 }
             }
@@ -372,39 +381,39 @@ namespace Radio
 
             var orderedChannels = _allRadios.Keys.OrderBy(x => x).ToList();
 
-            if (!secondTry)
+            if (!findWalkieTalkieOutOfListComplete)
             {
                 foreach (var ch in orderedChannels)
                 {
-                    if (ch == toChannelInstance) continue;
+                    if (ch == toChannelDestination) continue;
 
                     _allRadios.TryGetValue(ch, out var forTryFind);
                     if (forTryFind == null) continue;
 
-                    toChannelInstance = ch;
-                    lastChannel = ch;
+                    toChannelDestination = ch;
+                    latestChannelDestination = ch;
                     return forTryFind;
                 }
-                secondTry = true;
+                findWalkieTalkieOutOfListComplete = true;
                 return null;
             }
 
-            return broadCastToGameObject;
+            return destintionGameObject;
         }
 
         private void GiveUp()
         {
-            toChannelInstance = 0;
-            photonView.RPC("SetChannel", RpcTarget.Others, toChannelInstance);
+            toChannelDestination = 0;
+            photonView.RPC("SetChannel", RpcTarget.Others, toChannelDestination);
         }
 
         private void SwitchChannel()
         {
             var orderedChannels = _allRadios.Keys.OrderBy(x => x).ToList();
             if (orderedChannels.Count < 2) return;
-            int index = orderedChannels.IndexOf(toChannelInstance);
-            toChannelInstance = orderedChannels[(index + 1) % orderedChannels.Count];
-            photonView.RPC("SetChannel", RpcTarget.Others, toChannelInstance);
+            int index = orderedChannels.IndexOf(toChannelDestination);
+            toChannelDestination = orderedChannels[(index + 1) % orderedChannels.Count];
+            photonView.RPC("SetChannel", RpcTarget.Others, toChannelDestination);
             DisplayChannel();
             photonView.RPC("DisplayNet", RpcTarget.Others);
         }
@@ -414,41 +423,10 @@ namespace Radio
             DisplayChannel();
         }
 
-        private void ReAsignRadios()
-        {
-            throw new Exception("No radios at all Antony did shit his pants, please contact him asap on discord -> lnxoid");
-        }
-        private void RegisterWalkeiTalkieInstance()
-        {
-            try
-            {
-                light = gameObject.transform.GetChild(0).GetComponent<Light>();
-                if (light == null) { gameObject.name = "0InstanceWalkie"; return; }
-            }
-            catch
-            {
-                gameObject.name = "0InstanceWalkie";
-                return;
-            }
-
-            photonView = GetComponent<PhotonView>();
-
-            currentChannelInstance = photonView.ViewID;
-            gameObject.name = "WalkieTalkie" + currentChannelInstance;
-            _allRadios.Add(currentChannelInstance, gameObject);
-            if (_allRadios.Count == 1)
-            {
-                firstChannel = currentChannelInstance;
-                photonView.RPC("SetFirstChannel", RpcTarget.Others, currentChannelInstance);
-            }
-
-            Debug.Log(_allRadios.Count + " < count; " + gameObject.name);
-        }
-
         [PunRPC]
         void SetChannel(int newChannelId)
         {
-            toChannelInstance = newChannelId;
+            toChannelDestination = newChannelId;
             DisplayChannel();
         }
         [PunRPC]
@@ -458,29 +436,29 @@ namespace Radio
             DisplayChannel();
         }
         [PunRPC]
-        void SetFromBroadcast(int fromBroadcastId)
+        void SetFromChannelReceiving(int fromBroadcastId)
         {
-            broadcastFromInstance = fromBroadcastId;
+            fromChannelReceiving = fromBroadcastId;
             DisplayChannel();
         }
         [PunRPC]
-        void SetCurrentlyBroadcasting(bool currentlyBroadcasting)
+        void SetIsReceiving(bool currentlyBroadcasting)
         {
-            broadcastedToThisInstance = currentlyBroadcasting;
+            isReceiving = currentlyBroadcasting;
             DisplayChannel();
         }
         [PunRPC]
         void SetEquiped(bool newEquiped)
         {
-            equiped = newEquiped;
+            isThisEquiped = newEquiped;
         }
         [PunRPC]
-        void SetBroadcastGameObject(int viewId)
+        void SetDestinationGameObject(int viewId)
         {
             if (viewId == 0)
             {
-                broadCastToGameObject = null;
-                broadcastToWalkieTalkieScript = null;
+                destintionGameObject = null;
+                destinationGameObjectScript = null;
                 return;
             }
 
@@ -490,37 +468,82 @@ namespace Radio
                 Debug.LogError($"Gameobject with id {viewId} is null");
                 return;
             }
-            broadCastToGameObject = viewIdFind.gameObject;
+            destintionGameObject = viewIdFind.gameObject;
 
-            broadcastToWalkieTalkieScript = broadCastToGameObject.GetComponent<WalkieTalkieLn>();
+            destinationGameObjectScript = destintionGameObject.GetComponent<WalkieTalkieLn>();
+        }
+
+        [PunRPC]
+        void PlayIncomeSound()
+        {
+            if (itemEquipableScript != null)
+            {
+                if (itemEquipableScript.currentState == ItemEquippable.ItemState.Equipped)
+                {
+                    var ownerAvatartmp = getOwnerAvatar(currentChannelSource);
+
+                    if (ownerAvatartmp == null) { Debug.Log("sound cant be played no player avatar"); }
+                    else { messageIncomeSound.Play(ownerAvatartmp.transform.parent.position ); return; }
+                }
+            }
+
+            messageIncomeSound.Play(gameObject.transform.position);
+        }
+        [PunRPC]
+        void PlayOutSound()
+        {
+            changeOrEndChannelSound.Play(gameObject.transform.position);
         }
 
         private void DisplayChannel()
         {
-            textSource = gameObject.transform.GetChild(1).gameObject.GetComponent<TextMeshPro>();
-            textDestination = gameObject.transform.GetChild(2).gameObject.GetComponent<TextMeshPro>();
-            textBroadcastSource = gameObject.transform.GetChild(4).gameObject.GetComponent<TextMeshPro>();
 
-            textBroadcastSource.text = "from " + (broadcastFromInstance % 100).ToString();
-            textSource.text = (currentChannelInstance % 100).ToString() + "";
-            textDestination.text = (toChannelInstance % 100).ToString() + "";
+            //hardocoded thing maybe Find would look better
+            if (textSource == null)
+                textSource = gameObject.transform.GetChild(1).gameObject.GetComponent<TextMeshPro>();
+
+            if (textDestination == null)
+                textDestination = gameObject.transform.GetChild(2).gameObject.GetComponent<TextMeshPro>();
+
+            if (textBroadcastFromSource == null)
+                textBroadcastFromSource = gameObject.transform.GetChild(4).gameObject.GetComponent<TextMeshPro>();
+
+            // It's about limiting displaying id's that have more than 2 digits
+            textBroadcastFromSource.SetText("from " + (fromChannelReceiving % 100).ToString());
+            textSource.SetText((currentChannelSource % 100).ToString() + "");
+            textDestination.SetText((toChannelDestination % 100).ToString() + "");
         }
-        IEnumerator BlinkRoutine()
+
+        private void RegisterWalkeiTalkieInstance()
         {
-            while (true)
+            try
             {
-                if (lightDotBroadcasting == null)
-                    yield break;
-
-                lightDotBroadcasting.intensity =
-                    lightDotBroadcasting.intensity > 0.01f ? 0f : 0.05f;
-
-                yield return new WaitForSeconds(1f);
+                lightMain = gameObject.transform.GetChild(0).GetComponent<Light>();
+                if (lightMain == null) { gameObject.name = "0InstanceWalkie"; return; }
             }
+            catch
+            {
+                gameObject.name = "0InstanceWalkie";
+                return;
+            }
+
+            photonView = GetComponent<PhotonView>();
+
+            currentChannelSource = photonView.ViewID;
+            gameObject.name = "WalkieTalkie" + currentChannelSource;
+            _allRadios.Add(currentChannelSource, gameObject);
+            if (_allRadios.Count == 1)
+            {
+                firstChannel = currentChannelSource;
+                photonView.RPC("SetFirstChannel", RpcTarget.Others, currentChannelSource);
+            }
+
+            Debug.Log(_allRadios.Count + " < count; " + gameObject.name);
         }
+
         void OnDestroy()
         {
-            _allRadios.Remove(this.currentChannelInstance);
+            _allRadios.Remove(this.currentChannelSource);
         }
     }
 }

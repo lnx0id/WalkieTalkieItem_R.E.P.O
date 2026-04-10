@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace Radio;
 
-[BepInPlugin("Lnx0id.Radio", "Radio", "1.0.0")]
+[BepInPlugin("Lnx0id.Radio", "Radio", "1.1.0")]
 public class Radio : BaseUnityPlugin
 {
     internal static Radio Instance { get; private set; } = null!;
