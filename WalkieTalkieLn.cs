@@ -91,18 +91,24 @@ namespace Radio
             {
                 if (destinationGameObjectScript.warningTextMeshGUI != null && !string.IsNullOrEmpty(destinationGameObjectScript.warningTextMeshGUI.text))
                 {
+                    if (destinationGameObjectScript.isReceiving)
+                    {
+                        destinationGameObjectScript.isReceiving = false;
+                        destinationGameObjectScript.photonView.RPC("SetIsReceiving", RpcTarget.Others, false);
+
+                        destinationGameObjectScript.photonView.RPC("HudDeactivate", RpcTarget.All);
+                    }
+                }
+            }
+            if (itemEquipableScript != null && itemEquipableScript.currentState == ItemEquippable.ItemState.Equipped && destinationGameObjectScript != null && destinationGameObjectScript.fromChannelReceiving == currentChannelSource)
+            {
+                if (destinationGameObjectScript.isReceiving)
+                {
                     destinationGameObjectScript.isReceiving = false;
                     destinationGameObjectScript.photonView.RPC("SetIsReceiving", RpcTarget.Others, false);
 
                     destinationGameObjectScript.photonView.RPC("HudDeactivate", RpcTarget.All);
                 }
-            }
-            if (itemEquipableScript != null && itemEquipableScript.currentState == ItemEquippable.ItemState.Equipped && destinationGameObjectScript != null && destinationGameObjectScript.fromChannelReceiving == currentChannelSource)
-            {
-                destinationGameObjectScript.isReceiving = false;
-                destinationGameObjectScript.photonView.RPC("SetIsReceiving", RpcTarget.Others, false);
-
-                destinationGameObjectScript.photonView.RPC("HudDeactivate", RpcTarget.All);
             }
 
             if (isReceiving != isReceivedLately)
@@ -256,7 +262,7 @@ namespace Radio
 
                 if (destintionGameObject == null)
                 {
-                    destintionGameObject = tryGetGameObject();
+                    destintionGameObject = tryGeDestinationWalkietGameObject();
                 }
                 else if (destintionGameObject != latestOwnersWalkieGameObject)
                 {
@@ -366,7 +372,7 @@ namespace Radio
             return true;
         }
 
-        private GameObject? tryGetGameObject()
+        private GameObject? tryGeDestinationWalkietGameObject()
         {
             Vector3 physGrabTargetObjectPosition = Vector3.zero;
             GameObject? radioObject = null;
