@@ -306,7 +306,7 @@ namespace Radio
                     bool succes = getDestinationPosition(ref DestinationWalkiePosition);
 
 
-                    //ACTUAL CODE THAT DOES WALKIE TALKIES;) \/
+                    //ACTUAL CODE THAT DOES WALKIE TALKIES;) \/ taken from original valuableTalkingBotHead.cs and modifies
                     voice.OverridePosition(DestinationWalkiePosition, 0.2f);
                     voice.OverridePitch(0.85f, 0.1f, 0.1f, 0.2f, 0.05f, 100f);
                     item.playerAvatar.voiceChat.OverrideNoTalkAnimation(0.2f);
@@ -316,7 +316,9 @@ namespace Radio
                         intensityRatio += voice.clipLoudness * 8;
                     }
                 }
-                if (destintionGameObject == null) return;
+                
+                if (destinationGameObjectScript == null) return;
+
                 if (isCurrentlyBroadcastingTo && !destinationGameObjectScript.isReceiving)
                 {
                     destinationGameObjectScript.photonView.RPC("SetIsReceiving", RpcTarget.All, true);
