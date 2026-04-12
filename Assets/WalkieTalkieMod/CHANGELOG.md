@@ -1,13 +1,17 @@
+## v1.1.2
+- Walkie talkie in hand always rotates to you so you can see the channels
+
 ## v1.1.1
-- Fix translation sound when walkie talkie is in inventory
+- Fix broadcast begin sound when walkie talkie is in inventory
+- Additional sounds and noise while walkie talkie is receiving a signal
+- Bind for changing broadcasting channel now can be set in settings
 
 ## v1.1.0
-- Sound on the begining and the end of radio translation
-- Icon fix
+- Sound on the begining and the end of radio broadcast
+- Icon in inventory fix
 - Some minor fixes, little code refactoring
 
 ## v1.0.1
-- Fixed text formatting in `README.md`
 - Debug logs removed (most of them)
 - Some unnescessary logic removed
 

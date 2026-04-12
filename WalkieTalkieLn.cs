@@ -12,6 +12,9 @@ namespace Radio
         private static int firstChannel;
         private static Dictionary<int, GameObject> _allRadios = new Dictionary<int, GameObject>();
 
+        [Header("Physics")]
+        public float torqueMultiplier = 0.5f;
+
         [SerializeField] private Sound? messageIncomeSound;
         [SerializeField] private Sound? changeOrEndChannelSound;
         [SerializeField] private Sound? noiseLoopSound;
@@ -56,16 +59,43 @@ namespace Radio
         private void Awake()
         {
             RegisterWalkeiTalkieInstance();
-            if (gameObject.name == "0InstanceWalkie") return;
+            if (gameObject.name.Equals("0InstanceWalkie")) return;
             DisplayChannel();
 
             physGrabObject = this.gameObject.GetComponent<PhysGrabObject>();
             lightMain = gameObject.transform.GetChild(0).gameObject.GetComponent<Light>();
             itemEquipableScript = this.gameObject.GetComponent<ItemEquippable>();
         }
+        private void FixedUpdate()
+        {
+            if (!SemiFunc.IsMasterClientOrSingleplayer())
+            {
+                return;
+            }
+            
+            if (physGrabObject == null) return;
+
+            List<PhysGrabber> playerGrabbing = physGrabObject.playerGrabbing;
+            bool flag = false;
+            foreach (PhysGrabber item in playerGrabbing)
+            {
+                if (item.isRotating)
+                {
+                    flag = true;
+                }
+            }
+            if (!flag)
+            {
+                Quaternion turnX = Quaternion.Euler(0f, -180f, 0f);
+                Quaternion turnY = Quaternion.Euler(0f, 0f, 0f);
+                Quaternion identity = Quaternion.identity;
+                physGrabObject.TurnXYZ(turnX, turnY, identity);
+                physGrabObject.OverrideTorqueStrength(2f + physGrabObject.massOriginal);
+            }
+        }
         private void Update()
         {
-            if (gameObject.name == "0InstanceWalkie") return;
+            if (gameObject.name.Equals("0InstanceWalkie")) return;
 
             if (physGrabObject == null || lightMain == null || itemEquipableScript == null) return;
 
@@ -246,7 +276,6 @@ namespace Radio
             warningTextMeshGUI.SetText("INCOMING MESSAGE<br>take your walkie talkie from inventory");
             warningTextMeshGUI.enabled = true;
         }
-
 
         void BroadCast()
         {

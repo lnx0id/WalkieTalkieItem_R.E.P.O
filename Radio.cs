@@ -14,7 +14,7 @@ using UnityEngine;
 namespace Radio;
 
 [BepInDependency("bulletbot.keybindlib", BepInDependency.DependencyFlags.HardDependency)]
-[BepInPlugin("Lnx0id.Radio", "Radio", "1.1.1")]
+[BepInPlugin("Lnx0id.Radio", "Radio", "1.1.2")]
 public class Radio : BaseUnityPlugin
 {
     internal static Radio Instance { get; private set; } = null!;
