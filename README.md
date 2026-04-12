@@ -7,7 +7,9 @@ find something useful if you dont know where to start<br><br>
 >**WARNING**
 >(after building repobundle in unity **remember to remove extension** of .repobundle file in generated zip. Otherwise beepinex will try to load bundle twice and that is no good)
 <br>
-for latest code watch latest branch
+> 📘
+> 
+> for latest code watch latest branch
 <br><br>
 https://thunderstore.io/c/repo/p/lnxoid/WalkieTalkieItemBundle/
 # Walkie Talkie
