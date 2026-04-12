@@ -12,9 +12,6 @@ namespace Radio
         private static int firstChannel;
         private static Dictionary<int, GameObject> _allRadios = new Dictionary<int, GameObject>();
 
-        [Header("Physics")]
-        public float torqueMultiplier = 0.5f;
-
         [SerializeField] private Sound? messageIncomeSound;
         [SerializeField] private Sound? changeOrEndChannelSound;
         [SerializeField] private Sound? noiseLoopSound;
@@ -53,8 +50,11 @@ namespace Radio
 
         private GameObject? latestOwnersWalkieGameObject;
         private PlayerAvatar? latestOwnerAvatar;
-        private Vector3 globalPositionInInventory = new Vector3(0, 3000, 0);
+
         private bool isReceivedLately;
+
+        // uh?
+        private Vector3 globalPositionInInventory = new Vector3(0, 3000, 0);
 
         private void Awake()
         {
@@ -111,7 +111,7 @@ namespace Radio
                 {
                     photonView.RPC("SwitchChannel", RpcTarget.All);;
 
-                    changeOrEndChannelSound.Play(gameObject.transform.position);
+                    photonView.RPC("PlayOutSound", RpcTarget.All);
                 }
 
                 BroadCast();
@@ -552,6 +552,32 @@ namespace Radio
         [PunRPC]
         void PlayOutSound()
         {
+            if (itemEquipableScript != null)
+            {
+                if (itemEquipableScript.currentState == ItemEquippable.ItemState.Equipped)
+                {
+                    var avatar = getOwnerAvatar(currentChannelSource);
+
+                    if (avatar == null) return;
+
+                    var audioSource = avatar.gameObject.GetComponent<AudioSource>();
+                    // Not sure if this is a good idea but it works
+                    if (audioSource == null)
+                    {
+                        audioSource = avatar.gameObject.AddComponent<AudioSource>();
+                        avatar.gameObject.AddComponent<AudioLowPassFilter>();
+                        avatar.gameObject.AddComponent<AudioLowPassLogic>();
+                    }
+                    var tmpSource = messageIncomeSound.Source;
+
+                    messageIncomeSound.Source = audioSource;
+                    messageIncomeSound.Play(avatar.clientPositionCurrent);
+
+                    messageIncomeSound.Source = tmpSource;
+                    return;
+                }
+            }
+
             changeOrEndChannelSound.Play(gameObject.transform.position);
         }
 
