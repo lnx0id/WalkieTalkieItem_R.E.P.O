@@ -48,7 +48,7 @@ namespace Radio
         private PhotonView? photonView;
 
         private bool isEquipedLately = true;
-        private int latestChannelDestination = 0;
+        private int latestChannelDestination = 1;
         private bool isCurrentlyBroadcastingTo;
 
         private GameObject? latestOwnersWalkieGameObject;
@@ -109,7 +109,7 @@ namespace Radio
 
                 if (SemiFunc.InputDown(BindConfig.switchWalkieChannel.inputKey))
                 {
-                    SwitchChannel();
+                    photonView.RPC("SwitchChannel", RpcTarget.All);;
 
                     changeOrEndChannelSound.Play(gameObject.transform.position);
                 }
@@ -188,7 +188,7 @@ namespace Radio
                 }
                 else
                 {
-                    SwitchChannel();
+                    photonView.RPC("SwitchChannel", RpcTarget.All);;
                 }
 
                 Debug.Log("SETTED UP A RADIO -> " + gameObject.name + "channel from: " + currentChannelSource + "; channel to: " + toChannelDestination + "; ");
@@ -283,19 +283,26 @@ namespace Radio
             {
                 Vector3 DestinationWalkiePosition = Vector3.zero;
 
-                if (toChannelDestination == currentChannelSource)
+                if (toChannelDestination == 0)
                 {
-                    SwitchChannel();
                     return;
                 }
 
-                if (destintionGameObject == null)
+                if (toChannelDestination == currentChannelSource)
                 {
-                    destintionGameObject = tryGeDestinationWalkietGameObject();
+                    photonView.RPC("SwitchChannel", RpcTarget.All);;
+                    return;
                 }
-                else if (destintionGameObject != latestOwnersWalkieGameObject)
+
+                if (toChannelDestination != latestChannelDestination)
                 {
-                    latestOwnersWalkieGameObject = destintionGameObject;
+                    destintionGameObject = tryGetDestinationWalkietGameObject();
+                    latestChannelDestination = toChannelDestination;
+                }
+
+                else if (destintionGameObject == null)
+                {
+                    destintionGameObject = tryGetDestinationWalkietGameObject();
                 }
 
                 if (destintionGameObject == null)
@@ -403,7 +410,7 @@ namespace Radio
             return true;
         }
 
-        private GameObject? tryGeDestinationWalkietGameObject()
+        private GameObject? tryGetDestinationWalkietGameObject()
         {
             Vector3 physGrabTargetObjectPosition = Vector3.zero;
             GameObject? radioObject = null;
@@ -414,8 +421,7 @@ namespace Radio
             {
                 if (radioObject != null)
                 {
-                    latestChannelDestination = toChannelDestination;
-                    photonView.RPC("SetChannel", RpcTarget.Others, toChannelDestination);
+                    photonView.RPC("SetChannel", RpcTarget.Others, toChannelDestination);   
                     return radioObject;
                 }
             }
@@ -433,7 +439,6 @@ namespace Radio
                     if (forTryFind == null) continue;
 
                     toChannelDestination = ch;
-                    latestChannelDestination = ch;
                     return forTryFind;
                 }
                 findWalkieTalkieOutOfListComplete = true;
@@ -448,16 +453,14 @@ namespace Radio
             toChannelDestination = 0;
             photonView.RPC("SetChannel", RpcTarget.Others, toChannelDestination);
         }
-
+        [PunRPC]
         private void SwitchChannel()
         {
             var orderedChannels = _allRadios.Keys.OrderBy(x => x).ToList();
             if (orderedChannels.Count < 2) return;
             int index = orderedChannels.IndexOf(toChannelDestination);
             toChannelDestination = orderedChannels[(index + 1) % orderedChannels.Count];
-            photonView.RPC("SetChannel", RpcTarget.Others, toChannelDestination);
             DisplayChannel();
-            photonView.RPC("DisplayNet", RpcTarget.Others);
         }
         [PunRPC]
         private void DisplayNet()
