@@ -1,21 +1,26 @@
 ﻿using BepInEx;
+using BepInEx.Bootstrap;
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
+using KeybindLib;
+using KeybindLib.Classes;
 using REPOLib.Objects.Sdk;
 using System;
 using System.IO;
 using UnityEngine;
 
+
 namespace Radio;
 
-[BepInPlugin("Lnx0id.Radio", "Radio", "1.1.0")]
+[BepInDependency("bulletbot.keybindlib", BepInDependency.DependencyFlags.HardDependency)]
+[BepInPlugin("Lnx0id.Radio", "Radio", "1.1.2")]
 public class Radio : BaseUnityPlugin
 {
     internal static Radio Instance { get; private set; } = null!;
     internal new static ManualLogSource Logger => Instance._logger;
     private ManualLogSource _logger => base.Logger;
-    internal Harmony? Harmony { get; set; }
+    internal Harmony? _Harmony { get; set; }
     internal WalkieTalkieLn? scriptInstance { get; private set; }
 
     private void Awake()
@@ -25,6 +30,9 @@ public class Radio : BaseUnityPlugin
         // Prevent the plugin from being deleted
         this.gameObject.transform.parent = null;
         this.gameObject.hideFlags = HideFlags.HideAndDontSave;
+
+        BindConfig.switchWalkieChannel = Keybinds.Bind("SwitchChannel", "<Keyboard>/v");
+        Logger.LogWarning($"bind is {BindConfig.switchWalkieChannel.inputKey} set by default");
 
         scriptInstance = this.gameObject.AddComponent<WalkieTalkieLn>();
 
@@ -42,12 +50,16 @@ public class Radio : BaseUnityPlugin
 
     internal void Patch()
     {
-        Harmony ??= new Harmony(Info.Metadata.GUID);
-        Harmony.PatchAll();
+        _Harmony ??= new Harmony(Info.Metadata.GUID);
+        _Harmony.PatchAll();
     }
 
     internal void Unpatch()
     {
-        Harmony?.UnpatchSelf();
+        _Harmony?.UnpatchSelf();
     }
+}
+
+internal static class BindConfig {
+    public static Keybind switchWalkieChannel;
 }

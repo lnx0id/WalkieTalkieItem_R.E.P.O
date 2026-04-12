@@ -14,11 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _name: WalkieTalkieItemBundle
   _author: Lnx0id
-  _version: 1.1.0
+  _version: 1.1.2
   _description: 'Shopable item: walkie talkie. Used to call teammates from far distance
     model by https://sketchfab.com/jungle_jim'
   _websiteUrl: https://github.com/lnx0id/WalkieTalkieItem_R.E.P.O
   _dependencies:
   - Zehs-REPOLib-3.0.4
+  - BULLETBOT-KeybindLib-1.0.5
   _icon: {fileID: 21300000, guid: c56672a09bc33ec419a26eb108520a7a, type: 3}
   _readme: {fileID: 4900000, guid: d47c9ffe70304fb498fc5b36b27039a0, type: 3}
