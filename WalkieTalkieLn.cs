@@ -134,6 +134,7 @@ namespace Radio
             {
                 if (destinationGameObjectScript.isReceiving)
                 {
+                    destinationGameObjectScript.lightMain.intensity = 0f;
                     destinationGameObjectScript.isReceiving = false;
                     destinationGameObjectScript.photonView.RPC("SetIsReceiving", RpcTarget.Others, false);
                     destinationGameObjectScript.photonView.RPC("PlayOutSound", RpcTarget.All);
