@@ -32,7 +32,6 @@ public class Radio : BaseUnityPlugin
         this.gameObject.hideFlags = HideFlags.HideAndDontSave;
 
         BindConfig.switchWalkieChannel = Keybinds.Bind("SwitchChannel", "<Keyboard>/v");
-        Logger.LogWarning($"bind is {BindConfig.switchWalkieChannel.inputKey} set by default");
 
         scriptInstance = this.gameObject.AddComponent<WalkieTalkieLn>();
 
