@@ -14,7 +14,7 @@ using UnityEngine;
 namespace Radio;
 
 [BepInDependency("bulletbot.keybindlib", BepInDependency.DependencyFlags.HardDependency)]
-[BepInPlugin("Lnx0id.Radio", "Radio", "1.1.2")]
+[BepInPlugin("Lnx0id.Radio", "Radio", "1.1.3")]
 public class Radio : BaseUnityPlugin
 {
     internal static Radio Instance { get; private set; } = null!;
@@ -32,7 +32,6 @@ public class Radio : BaseUnityPlugin
         this.gameObject.hideFlags = HideFlags.HideAndDontSave;
 
         BindConfig.switchWalkieChannel = Keybinds.Bind("SwitchChannel", "<Keyboard>/v");
-        Logger.LogWarning($"bind is {BindConfig.switchWalkieChannel.inputKey} set by default");
 
         scriptInstance = this.gameObject.AddComponent<WalkieTalkieLn>();
 

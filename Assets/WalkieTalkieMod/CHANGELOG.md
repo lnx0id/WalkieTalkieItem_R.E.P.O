@@ -1,3 +1,8 @@
+## v1.1.3
+- Debugged with full engagement all people that i could bring to it (1 person)
+- Channel switching fix
+- General bug fixes and logic stabilization, some hardcoded things still there though
+
 ## v1.1.2
 - Walkie talkie in hand always rotates to you so you can see the channels
 

@@ -18,5 +18,5 @@ some features may don't work. Invitation for mod-devs to check out the source co
 Made for me and my friends in general but feel free to use just do not expect much.<br>
 They work on the "talking bot head" principle but on distance and lower sound instead of making it higher.<br>
 </details><br>
-> I'll make post in the released_mods section on repo modding discord so you can leave a comment if something isn't working or if you have ideas for new features;<br><br>
+> <a href="https://discord.com/channels/1344557689979670578/1492839422767530115">report bugs and ideas <br><br>
 # <a href="https://sketchfab.com/jungle_jim">model by jungle_jim</a>
