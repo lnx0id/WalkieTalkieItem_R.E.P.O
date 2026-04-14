@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: ItemWalkieTalkie
   m_EditorClassIdentifier: 
   disabled: 0
-  itemName: WalkieTalkie
-  description: walkie talkie mfks
+  itemName: Walkie talkie
+  description: hold the walkie talkie to speech to another that is not in inventory
   itemType: 13
   emojiIcon: 11
   itemVolume: 6

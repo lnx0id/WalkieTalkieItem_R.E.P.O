@@ -337,7 +337,7 @@ namespace Radio
 
                 if (!succes) return;
 
-                //ACTUAL CODE THAT DOES WALKIE TALKIES;) \/ taken from original valuableTalkingBotHead.cs and modifies
+                //ACTUAL CODE THAT DOES WALKIE TALKIES;) \/ taken from original valuableTalkingBotHead.cs and modified
                 voice.OverridePosition(DestinationWalkiePosition, 0.2f);
                 voice.OverridePitch(0.85f, 0.1f, 0.1f, 0.2f, 0.05f, 100f);
                 item.playerAvatar.voiceChat.OverrideNoTalkAnimation(0.2f);
@@ -555,8 +555,7 @@ namespace Radio
 
         private void DisplayChannel()
         {
-
-            //hardocoded thing maybe Find would look better but i don't know about productivity and uhhh
+            //hardocoded thing maybe Find would look better but performance and all
             if (textSource == null)
                 textSource = gameObject.transform.GetChild(1).gameObject.GetComponent<TextMeshPro>();
 
@@ -566,8 +565,12 @@ namespace Radio
             if (textBroadcastFromSource == null)
                 textBroadcastFromSource = gameObject.transform.GetChild(4).gameObject.GetComponent<TextMeshPro>();
 
-            // It's about limiting displaying id's that have more than 2 digits also hardcoded thing
-            textBroadcastFromSource.SetText("from " + (fromChannelReceiving % 100).ToString());
+            //it's about limiting displaying id's that have more than 2 digits also hardcoded thing
+
+            textBroadcastFromSource.SetText(
+                fromChannelReceiving == 0 ? "" : ($"from " + (fromChannelReceiving % 100).ToString()) 
+                );
+
             textSource.SetText((currentChannelSource % 100).ToString() );
             textDestination.SetText((toChannelDestination % 100).ToString() );
         }
