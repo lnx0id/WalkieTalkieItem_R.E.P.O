@@ -1,3 +1,5 @@
+[![Generic badge](https://img.shields.io/badge/version-1.1.3-GREEN.svg)](https://shields.io/)
+
 ... readme copied from Assets folder
 <br>
 please note that code here is very far from best-practice repo-modding and working with photon, you still can
